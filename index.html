@@ -1,1 +1,418 @@
- 
+ <!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Погода в Трухильо, Гондурас</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css"
+    />
+    <script src="https://code.highcharts.com/highcharts.js"></script>
+    <style>
+        :root {
+            --primary: #3498db;
+            --secondary: #2980b9;
+            --accent: #e74c3c;
+            --light: #ecf0f1;
+            --dark: #2c3e50;
+            --success: #2ecc71;
+            --sunny: #f39c12;
+            --cloudy: #95a5a6;
+            --rainy: #3498db;
+            --night: #2c3e50;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            color: var(--dark);
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            color: white;
+            text-align: center;
+            padding: 30px 0;
+            border-radius: 0 0 20px 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+            position: relative;
+        }
+        
+        /* Стили для вкладок */
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        
+        .tab-btn {
+            flex: 1;
+            padding: 15px;
+            text-align: center;
+            background: white;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        .tab-btn i {
+            margin-right: 8px;
+        }
+        
+        .tab-btn.active {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .tab-btn:not(:last-child)::after {
+            content: "";
+            position: absolute;
+            right: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            height: 60%;
+            width: 1px;
+            background: rgba(0,0,0,0.1);
+        }
+        
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.5s ease;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        /* Общие стили для карточек */
+        .card {
+            background: white;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+        }
+        
+        /* Стили для раздела "Сейчас" */
+        .current-weather {
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .weather-icon {
+            font-size: 4rem;
+            color: var(--sunny);
+            margin-right: 20px;
+        }
+        
+        /* Таблица почасового прогноза */
+        .hourly-forecast {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        .hourly-forecast th,
+        .hourly-forecast td {
+            border: 1px solid var(--light);
+            padding: 12px 15px;
+            text-align: center;
+            font-weight: 500;
+            color: var(--dark);
+        }
+
+        .hourly-forecast thead {
+            background-color: var(--primary);
+            color: white;
+            font-weight: 700;
+        }
+
+        .hourly-forecast tbody tr:nth-child(even) {
+            background-color: var(--light);
+        }
+
+        .hourly-forecast i {
+            font-size: 1.2rem;
+            color: var(--sunny);
+        }
+
+        /* Стили для раздела "Карта" */
+        .map-container {
+            height: 500px;
+            border-radius: 15px;
+            overflow: hidden;
+        }
+        
+        /* Стили для раздела "Советы" */
+        .tips-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+        }
+        
+        .tip-card {
+            background: var(--light);
+            padding: 20px;
+            border-radius: 10px;
+            transition: transform 0.3s ease;
+        }
+        
+        .tip-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        /* Анимации */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        /* Адаптивность */
+        @media (max-width: 768px) {
+            .tabs {
+                flex-direction: column;
+            }
+            
+            .map-container {
+                height: 300px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="container">
+            <h1><i class="fas fa-umbrella-beach"></i> Погода в Трухильо</h1>
+            <p>Актуальная информация о погоде и климате</p>
+        </div>
+    </header>
+    
+    <div class="container">
+        <!-- Вкладки -->
+        <div class="tabs">
+            <button class="tab-btn active" data-tab="current">
+                <i class="fas fa-sun"></i> Сейчас
+            </button>
+            <button class="tab-btn" data-tab="forecast">
+                <i class="fas fa-calendar-alt"></i> На неделю
+            </button>
+            <button class="tab-btn" data-tab="map">
+                <i class="fas fa-map-marked-alt"></i> Карта
+            </button>
+            <button class="tab-btn" data-tab="tips">
+                <i class="fas fa-lightbulb"></i> Советы
+            </button>
+            <button class="tab-btn" data-tab="tourism">
+                <i class="fas fa-camera"></i> Туризм
+            </button>
+        </div>
+        
+        <!-- Контент вкладок -->
+        <div id="current" class="tab-content active">
+            <div class="card">
+                <h2><i class="fas fa-sun"></i> Текущая погода</h2>
+                <div class="current-weather">
+                    <div class="weather-icon">
+                        <i class="fas fa-sun"></i>
+                    </div>
+                    <div>
+                        <div class="temp">28°C</div>
+                        <div class="condition">Солнечно</div>
+                        <div class="details">
+                            <div><i class="fas fa-tint"></i> Влажность: 65%</div>
+                            <div><i class="fas fa-wind"></i> Ветер: 12 км/ч</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card">
+                <h2><i class="fas fa-clock"></i> Почасовой прогноз</h2>
+                <table class="hourly-forecast">
+                    <thead>
+                        <tr>
+                            <th>Время</th>
+                            <th>Температура</th>
+                            <th>Состояние</th>
+                            <th>Ветер</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>09:00</td>
+                            <td>28°C</td>
+                            <td><i class="fas fa-sun" title="Солнечно"></i></td>
+                            <td>10 км/ч</td>
+                        </tr>
+                        <tr>
+                            <td>12:00</td>
+                            <td>31°C</td>
+                            <td><i class="fas fa-cloud-sun" title="Переменная облачность"></i></td>
+                            <td>12 км/ч</td>
+                        </tr>
+                        <tr>
+                            <td>15:00</td>
+                            <td>33°C</td>
+                            <td><i class="fas fa-cloud-showers-heavy" title="Дождь"></i></td>
+                            <td>15 км/ч</td>
+                        </tr>
+                        <tr>
+                            <td>18:00</td>
+                            <td>30°C</td>
+                            <td><i class="fas fa-cloud" title="Облачно"></i></td>
+                            <td>8 км/ч</td>
+                        </tr>
+                        <tr>
+                            <td>21:00</td>
+                            <td>27°C</td>
+                            <td><i class="fas fa-moon" title="Ясно"></i></td>
+                            <td>5 км/ч</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <div id="forecast" class="tab-content">
+            <div class="card">
+                <h2><i class="fas fa-chart-line"></i> Прогноз на 7 дней</h2>
+                <div id="chart-container" style="height: 400px;"></div>
+            </div>
+        </div>
+        
+        <div id="map" class="tab-content">
+            <div class="card">
+                <h2><i class="fas fa-map-marked-alt"></i> Карта погоды</h2>
+                <div class="map-container">
+                    <iframe
+                      src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d61389.757376132286!2d-85.99329034594302!3d15.916412343583122!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8f6a3793dc4d4987%3A0x4ef1b2ec510ebc4!2z0KLRgNGD0YXQuNC70YzQviwg0JrQvtC70L7QvSwg0JPQvtC90LTRg9GA0LDRgQ!5e0!3m2!1sru!2sru!4v1745830204181!5m2!1sru!2sru"
+                      width="100%"
+                      height="100%"
+                      style="border: 0"
+                      allowfullscreen
+                      loading="lazy"
+                    ></iframe>
+                </div>
+            </div>
+        </div>
+        
+        <div id="tips" class="tab-content">
+            <div class="card">
+                <h2><i class="fas fa-lightbulb"></i> Полезные советы</h2>
+                <div class="tips-grid">
+                    <div class="tip-card">
+                        <h3><i class="fas fa-tshirt"></i> Одежда</h3>
+                        <p>Легкая хлопковая одежда светлых тонов идеально подойдет для этой погоды.</p>
+                    </div>
+                    <div class="tip-card">
+                        <h3><i class="fas fa-sun"></i> Защита от солнца</h3>
+                        <p>Используйте солнцезащитный крем с SPF 30+ и носите головной убор.</p>
+                    </div>
+                    <div class="tip-card">
+                        <h3><i class="fas fa-umbrella"></i> Дождь</h3>
+                        <p>Имейте при себе зонт - после обеда возможны кратковременные дожди.</p>
+                    </div>
+                    <div class="tip-card">
+                        <h3><i class="fas fa-glass-whiskey"></i> Гидратация</h3>
+                        <p>Пейте не менее 2 литров воды в день, чтобы избежать обезвоживания.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="tourism" class="tab-content">
+            <div class="card">
+                <h2><i class="fas fa-camera"></i> Туристические места</h2>
+                <div class="tips-grid">
+                    <div class="tip-card">
+                        <h3><i class="fas fa-umbrella-beach"></i> Пляжи</h3>
+                        <p>Лучшие пляжи Трухильо с белым песком и кокосовыми пальмами.</p>
+                    </div>
+                    <div class="tip-card">
+                        <h3><i class="fas fa-landmark"></i> Форт Санта-Барбара</h3>
+                        <p>Историческая крепость с панорамным видом на город и море.</p>
+                    </div>
+                    <div class="tip-card">
+                        <h3><i class="fas fa-utensils"></i> Местная кухня</h3>
+                        <p>Где попробовать лучшие морепродукты и традиционные блюда.</p>
+                    </div>
+                    <div class="tip-card">
+                        <h3><i class="fas fa-ship"></i> Экскурсии</h3>
+                        <p>Морские прогулки к островам и дайвинг-туры.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Инициализация вкладок
+        const tabBtns = document.querySelectorAll('.tab-btn');
+        const tabContents = document.querySelectorAll('.tab-content');
+
+        tabBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                tabBtns.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+
+                tabContents.forEach(c => c.classList.remove('active'));
+                const tab = btn.getAttribute('data-tab');
+                document.getElementById(tab).classList.add('active');
+            });
+        });
+
+        // Пример графика для прогноза на неделю (Highcharts)
+        Highcharts.chart('chart-container', {
+            chart: {
+                type: 'line',
+                backgroundColor: 'transparent'
+            },
+            title: {
+                text: 'Температура на неделю'
+            },
+            xAxis: {
+                categories: ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс']
+            },
+            yAxis: {
+                title: {
+                    text: 'Температура (°C)'
+                }
+            },
+            series: [{
+                name: 'Макс',
+                data: [31, 33, 32, 30, 29, 28, 27],
+                color: '#e74c3c'
+            }, {
+                name: 'Мин',
+                data: [24, 25, 23, 22, 21, 20, 19],
+                color: '#3498db'
+            }]
+        });
+    </script>
+</body>
+</html>
